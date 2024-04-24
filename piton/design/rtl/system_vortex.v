@@ -1,6 +1,6 @@
 // include statements to come
 `include "/home/jae/openpiton_vortex/vortex/hw/rtl/afu/xrt/vortex_afu.v"
-
+`include "~/vortex/hw/rtl/afu/xrt/vortex_afu.vh"
 
 module system_vortex_wrap (
 `ifndef PITON_FPGA_SYNTH
@@ -627,19 +627,20 @@ system system(
 );
 
 wire interrupt;
+// gonna need to process the piton signals to fit the AFU
 
 vortex_afu #(
     .C_S_AXI_CTRL_ADDR_WIDTH (8),
 	.C_S_AXI_CTRL_DATA_WIDTH	(32),
-	.C_M_AXI_MEM_ID_WIDTH    (16),
+	.C_M_AXI_MEM_ID_WIDTH    (32), //`M_AXI_MEM_ID_WIDTH
 	.C_M_AXI_MEM_ADDR_WIDTH  (64),
-	.C_M_AXI_MEM_DATA_WIDTH  (512)
+	.C_M_AXI_MEM_DATA_WIDTH  (512) //`VX_MEM_DATA_WIDTH
 )
 
 vortex_afu (
     // System signals
-    input wire ap_clk,
-    input wire ap_rst_n,
+    .ap_clk (mc_clk),
+    .ap_rst_n(sys_rst_n),
 
     // AXI4 master interface
 	`REPEAT (`M_AXI_MEM_NUM_BANKS, GEN_AXI_MEM, REPEAT_COMMA),
@@ -665,5 +666,6 @@ vortex_afu (
     
     output wire                                 .interrupt(interrupt)
 ); 
+
 
 endmodule

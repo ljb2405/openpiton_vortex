@@ -1,8 +1,18 @@
 // include statements to come
 `include "/home/jae/openpiton_vortex/vortex/hw/rtl/afu/xrt/vortex_afu.v"
 `include "~/vortex/hw/rtl/afu/xrt/vortex_afu.vh"
+`include "~/verilog-axi/rtl"
 
-module system_vortex_wrap (
+module system_vortex_wrap # (
+    parameter C_S_AXI_CTRL_ADDR_WIDTH = (8),
+	parameter C_S_AXI_CTRL_DATA_WIDTH = (32),
+	parameter C_M_AXI_MEM_ID_WIDTH    = (32), //`M_AXI_MEM_ID_WIDTH
+	parameter C_M_AXI_MEM_ADDR_WIDTH  = (64),
+	parameter C_M_AXI_MEM_DATA_WIDTH  = (512) //`VX_MEM_DATA_WIDTH
+)
+( 
+    input ap_clk,
+    input interrupt,
 `ifndef PITON_FPGA_SYNTH
     // I/O settings
     input                                       chip_io_slew,
@@ -625,9 +635,114 @@ system system(
     `endif
 
 );
+// Declare all AXI-4 Lite wires into Vortex
+wire [C_S_AXI_CTRL_ADDR_WIDTH-1:0]       m_axil_awaddr;
+wire [2:0]                               m_axil_awprot;
+wire                                     m_axil_awvalid;
+wire                                     m_axil_awready;
+wire [C_S_AXI_CTRL_DATA_WIDTH-1:0]       m_axil_wdata;
+wire [(C_S_AXI_CTRL_DATA_WIDTH/8)-1:0]   m_axil_wstrb;
+wire                                     m_axil_wvalid;
+wire                                     m_axil_wready;
+wire [1:0]                               m_axil_bresp;
+wire                                     m_axil_bvalid;
+wire                                     m_axil_bready;
+wire [C_S_AXI_CTRL_ADDR_WIDTH-1:0]       m_axil_araddr;
+wire [2:0]                               m_axil_arprot;
+wire                                     m_axil_arvalid;
+wire                                     m_axil_arready;
+wire [C_S_AXI_CTRL_DATA_WIDTH-1:0]       m_axil_rdata;
+wire [1:0]                               m_axil_rresp;
+wire                                     m_axil_rvalid;
+wire                                     m_axil_rready;
 
-wire interrupt;
 // gonna need to process the piton signals to fit the AFU
+axi_axil_adapter #(
+    // Width of address bus in bits
+    .ADDR_WIDTH(8),
+    // Width of input (slave) AXI interface data bus in bits
+    .AXI_DATA_WIDTH(512),
+    // Width of input (slave) AXI interface wstrb (width of data bus in words)
+    .AXI_STRB_WIDTH = (AXI_DATA_WIDTH/8),
+    // Width of AXI ID signal
+    .AXI_ID_WIDTH = (`AXI4_ID_WIDTH),
+    // Width of output (master) AXI lite interface data bus in bits
+    .AXIL_DATA_WIDTH(32),
+    // Width of output (master) AXI lite interface wstrb (width of data bus in words)
+    .AXIL_STRB_WIDTH = (AXIL_DATA_WIDTH/8),
+    // When adapting to a wider bus, re-pack full-width burst instead of passing through narrow burst if possible
+    .CONVERT_BURST = 1,
+    // When adapting to a wider bus, re-pack all bursts instead of passing through narrow burst if possible
+    .CONVERT_NARROW_BURST = 0
+)
+axi_axil_adapter (
+    .clk(mc_clk),
+    .rst(sys_rst_n),
+
+    /*
+     * AXI slave interface
+     */
+    .s_axi_awid(m_axi_awid),
+    .s_axi_awaddr(m_axi_awaddr[7:0]),
+    .s_axi_awlen(m_axi_awlen),
+    .s_axi_awsize(m_axi_awsize),
+    .s_axi_awburst(m_axi_awburst),
+    .s_axi_awlock(m_axi_awlock),
+    .s_axi_awcache(m_axi_awcache),
+    .s_axi_awprot(m_axi_awprot),
+    .s_axi_awvalid(m_axi_awvalid),
+    .s_axi_awready(m_axi_awready),
+    .s_axi_wdata(m_axi_wdata),
+    .s_axi_wstrb(m_axi_wstrb),
+    .s_axi_wlast(m_axi_wlast),
+    .s_axi_wvalid(m_axi_wvalid),
+    .s_axi_wready(m_axi_wready),
+    .s_axi_bid(m_axi_bid),
+    .s_axi_bresp(m_axi_bresp),
+    .s_axi_bvalid(m_axi_bvalid),
+    .s_axi_bready(m_axi_bready),
+    .s_axi_arid(m_axi_arid),
+    .s_axi_araddr(m_axi_araddr[7:0]),
+    .s_axi_arlen(m_axi_arlen),
+    .s_axi_arsize(m_axi_arsize),
+    .s_axi_arburst(m_axi_arburst),
+    .s_axi_arlock(m_axi_arlock),
+    .s_axi_arcache(m_axi_arcache),
+    .s_axi_arprot(m_axi_arprot),
+    .s_axi_arvalid(m_axi_arvalid),
+    .s_axi_arready(m_axi_arready),
+    .s_axi_rid(m_axi_rid),
+    .s_axi_rdata(m_axi_rdata),
+    .s_axi_rresp(m_axi_rresp),
+    .s_axi_rlast(m_axi_rlast),
+    .s_axi_rvalid(m_axi_rvalid),
+    .s_axi_rready(m_axi_rready),
+
+    /*
+     * AXI lite master interface
+     */
+    .m_axil_awaddr(m_axil_awaddr),
+    .m_axil_awprot(m_axil_awprot),
+    .m_axil_awvalid(m_axil_awvalid),
+    .m_axil_awready(m_axil_awready),
+    .m_axil_wdata(m_axil_wdata),
+    .m_axil_wstrb(m_axil_wstrb),
+    .m_axil_wvalid(m_axil_wvalid),
+    .m_axil_wready(m_axil_wready),
+    .m_axil_bresp(m_axil_bresp),
+    .m_axil_bvalid(m_axil_bvalid),
+    .m_axil_bready(m_axil_bready),
+    .m_axil_araddr(m_axil_araddr),
+    .m_axil_arprot(m_axil_arprot),
+    .m_axil_arvalid(m_axil_arvalid),
+    .m_axil_arready(m_axil_arready),
+    .m_axil_rdata(m_axil_rdata),
+    .m_axil_rresp(m_axil_rresp),
+    .m_axil_rvalid(m_axil_rvalid),
+    .m_axil_rready(m_axil_rready)
+);
+
+
 
 vortex_afu #(
     .C_S_AXI_CTRL_ADDR_WIDTH (8),
@@ -639,32 +754,32 @@ vortex_afu #(
 
 vortex_afu (
     // System signals
-    .ap_clk (mc_clk),
+    .ap_clk (ap_clk),
     .ap_rst_n(sys_rst_n),
 
     // AXI4 master interface
 	`REPEAT (`M_AXI_MEM_NUM_BANKS, GEN_AXI_MEM, REPEAT_COMMA),
 
     // AXI4-Lite slave interface
-    .s_axi_ctrl_awvalid(m_axi_awvalid),
-    .s_axi_ctrl_awready(m_axi_awready),
-    input  wire [C_S_AXI_CTRL_ADDR_WIDTH-1:0]   .s_axi_ctrl_awaddr(m_axi_awaddr), // 8 // 64 - piton
-    .s_axi_ctrl_wvalid(m_axi_wvalid),
-    .s_axi_ctrl_wready(m_axi_wready),
-    input  wire [C_S_AXI_CTRL_DATA_WIDTH-1:0]   .s_axi_ctrl_wdata(m_axi_wdata), // 32 // 512 - piton
-    input  wire [C_S_AXI_CTRL_DATA_WIDTH/8-1:0] .s_axi_ctrl_wstrb(m_axi_wstrb), // 4 // 64 - piton
-    .s_axi_ctrl_arvalid(m_axi_arvalid),
-    .s_axi_ctrl_arready(m_axi_arready),
-    input  wire [C_S_AXI_CTRL_ADDR_WIDTH-1:0]   .s_axi_ctrl_araddr(m_axi_araddr),
-    .s_axi_ctrl_rvalid(m_axi_rvalid),
-    .s_axi_ctrl_rready(m_axi_rready),
-    output wire [C_S_AXI_CTRL_DATA_WIDTH-1:0]   .s_axi_ctrl_rdata(m_axi_rdata),
-    .s_axi_ctrl_rresp(m_axi_rresp),
-    .s_axi_ctrl_bvalid(m_axi_bvalid),
-    .s_axi_ctrl_bready(m_axi_bready),
-    .s_axi_ctrl_bresp(m_axi_bresp),
+    .s_axi_ctrl_awvalid(m_axil_awvalid),
+    .s_axi_ctrl_awready(m_axil_awready),
+    .s_axi_ctrl_awaddr(m_axil_awaddr), // 8 // 64 - piton
+    .s_axi_ctrl_wvalid(m_axil_wvalid),
+    .s_axi_ctrl_wready(m_axil_wready),
+    .s_axi_ctrl_wdata(m_axil_wdata), // 32 // 512 - piton
+    .s_axi_ctrl_wstrb(m_axil_wstrb), // 4 // 64 - piton
+    .s_axi_ctrl_arvalid(m_axil_arvalid),
+    .s_axi_ctrl_arready(m_axil_arready),
+    .s_axi_ctrl_araddr(m_axil_araddr), // 8 // 64 - piton
+    .s_axi_ctrl_rvalid(m_axil_rvalid),
+    .s_axi_ctrl_rready(m_axil_rready),
+    .s_axi_ctrl_rdata(m_axil_rdata), // 32 // 512 - piton
+    .s_axi_ctrl_rresp(m_axil_rresp),
+    .s_axi_ctrl_bvalid(m_axil_bvalid),
+    .s_axi_ctrl_bready(m_axil_bready),
+    .s_axi_ctrl_bresp(m_axil_bresp),
     
-    output wire                                 .interrupt(interrupt)
+    .interrupt(interrupt)
 ); 
 
 

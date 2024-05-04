@@ -8,8 +8,5 @@
 	path = piton/design/chipset/rv64_platform/bootrom/u-boot/uboot
 	url = git@github.com:u-boot/u-boot.git
 [submodule "vortex"]
-	path = vortex
-	url = https://github.com/vortexgpgpu/vortex
-[submodule "verilog-axi"]
-	path = verilog-axi
-	url = https://github.com/alexforencich/verilog-axi.git
+	path = piton/chipset/vortex_bridge/rtl/vortex
+	url = https://github.com/vortexgpgpu/vortex.git

@@ -1,5 +1,5 @@
 `include "piton_vortex_define.vh"
-`include "./vortex/ci/hw/rtl"
+`include "./vortex/hw/rtl"
 
 module piton_vortex_top #(
     parameter VORTEX_AXI_CTRL_ADDR_WIDTH = 8,
@@ -10,7 +10,6 @@ module piton_vortex_top #(
 )(
     // Clock and reset
     input  wire                             sys_clk,
-    input  wire                             ap_clk,
     input  wire                             sys_rst,
 
     // NOC interface
@@ -23,6 +22,7 @@ module piton_vortex_top #(
     input  wire                             splitter_vortex_rdy
 
     // not entirely sure comes here?
+    // 5/5/24 maybe nothing comes here since entire vortex is under the top
 );
 
 wire sys_rst_n = ~sys_rst;
@@ -46,8 +46,14 @@ wire                                    m_axi_ctrl_bvalid;
 wire                                    m_axi_ctrl_bready;
 wire [1:0]                              m_axi_ctrl_bresp;
 // wires
-
+// TODO: Instantiate core ctrl
 // core_ctrl
+piton_vortex_core_ctrl ctrl #(
+    .C_S_AXI_CTRL_ADDR_WIDTH (VORTEX_AXI_CTRL_ADDR_WIDTH),
+	.C_S_AXI_CTRL_DATA_WIDTH (VORTEX_AXI_CTRL_DATA_WIDTH)
+)(
+
+);
 
 // master port logic / buffer?
 
@@ -61,7 +67,7 @@ vortex_afu vortex_afu #(
 	.C_M_AXI_MEM_DATA_WIDTH  (VORTEX_AXI_MEM_DATA_WIDTH)  
 ) (
     // System signals
-	.ap_clk (ap_clk),
+	.ap_clk (sys_clk),
 	.ap_rst_n (sys_rst_n),
 	
 	// AXI4 master interface
@@ -77,15 +83,15 @@ vortex_afu vortex_afu #(
     .s_axi_ctrl_wstrb (m_axi_ctrl_wstrb),
     .s_axi_ctrl_arvalid (m_axi_ctrl_arvalid),
     .s_axi_ctrl_arready (m_axi_ctrl_arready),
-    .s_axi_ctrl_araddr (),
-    .s_axi_ctrl_rvalid (),
-    .s_axi_ctrl_rready (),
-    .s_axi_ctrl_rdata (),
-    .s_axi_ctrl_rresp (),
-    .s_axi_ctrl_bvalid (),
-    .s_axi_ctrl_bready (),
-    .s_axi_ctrl_bresp (),
+    .s_axi_ctrl_araddr (m_axi_ctrl_araddr),
+    .s_axi_ctrl_rvalid (m_axi_ctrl_rvalid),
+    .s_axi_ctrl_rready (m_axi_ctrl_rready),
+    .s_axi_ctrl_rdata (m_axi_ctrl_rdata),
+    .s_axi_ctrl_rresp (m_axi_ctrl_rresp),
+    .s_axi_ctrl_bvalid (m_axi_ctrl_bvalid),
+    .s_axi_ctrl_bready (m_axi_ctrl_bready),
+    .s_axi_ctrl_bresp (m_axi_ctrl_bresp),
     
-    .interrupt 
+    .interrupt () // Not sure what to do with this
 );
 endmodule

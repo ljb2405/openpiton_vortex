@@ -1,4 +1,3 @@
 piton_vortex_top.v
-piton_vortex_buffer.v
 piton_vortex_core_ctrl.v
 piton_vortex_define.vh

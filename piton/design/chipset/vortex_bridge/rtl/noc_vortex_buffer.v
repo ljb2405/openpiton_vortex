@@ -1,5 +1,5 @@
-`include "piton_sd_define.vh"
-
+`include "piton_vortex_define.vh"
+// 5/5/24 DEPRECATED UNTIL FURTHER NOTICE
 module noc_vortex_buffer #(
     parameter VORTEX_AXI_CTRL_ADDR_WIDTH = 8,
 	parameter VORTEX_AXI_CTRL_DATA_WIDTH = 32,

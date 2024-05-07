@@ -1,4 +1,4 @@
-`include    "define.tmp.h"
+`include  "define.tmp.h"
 
 `define NOC_DATA_BITS           `NOC_DATA_WIDTH-1:0
 `define VORTEX_AXI_CTRL_ADDR_WIDTH  8

@@ -1,5 +1,5 @@
-`include "piton_vortex_define.vh"
-`include "./vortex/hw/rtl"
+`include "openpiton_vortex/piton/design/chipset/vortex_bridge/rtl/piton_vortex_define.vh"
+`include "openpiton_vortex/piton/design/chipset/vortex_bridge/rtl/vortex/hw/rtl"
 // TODO: wire/reg management
 
 module piton_vortex_top #(

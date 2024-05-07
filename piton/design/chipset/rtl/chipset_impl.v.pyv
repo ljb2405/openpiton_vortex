@@ -1105,6 +1105,24 @@ fake_uart fake_uart (
 );
 `endif // endif PITONSYS_IOCTRL
 
+// Vortex interface
+`ifdef PITONSYS_VORTEX
+
+    /* Bridge between NOCs and Vortex */
+    piton_sd_top piton_vortex_top (
+        .sys_clk          ( chipset_clk       ),
+        .sys_rst          ( ~chipset_rst_n    ),
+
+        .splitter_sd_val  ( buf_vortex_noc2_valid ),
+        .splitter_sd_data ( buf_vortex_noc2_data  ),
+        .sd_splitter_rdy  ( vortex_buf_noc2_ready ),
+
+        .sd_splitter_val  ( vortex_buf_noc3_valid ),
+        .sd_splitter_data ( vortex_buf_noc3_data  ),
+        .splitter_sd_rdy  ( buf_vortex_noc3_ready ),
+        );
+
+`endif
 
 /////////////////////////////
 // Ariane-Specific Chipset //

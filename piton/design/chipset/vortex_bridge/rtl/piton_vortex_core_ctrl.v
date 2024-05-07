@@ -1,4 +1,4 @@
-`include "piton_sd_define.vh"
+`include "openpiton_vortex/piton/design/chipset/vortex_bridge/rtl/piton_vortex_define.vh"
 
 module piton_vortex_core_ctrl #(
     parameter VORTEX_AXI_CTRL_ADDR_WIDTH = 8,

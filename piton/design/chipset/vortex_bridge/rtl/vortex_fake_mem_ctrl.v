@@ -1,4 +1,4 @@
-`include "piton_vortex_define.vh"
+`include "openpiton_vortex/piton/design/chipset/vortex_bridge/rtl/piton_vortex_define.vh"
 `include "vortex_fake_mem.v"
 
 module vortex_fake_mem_ctrl #(

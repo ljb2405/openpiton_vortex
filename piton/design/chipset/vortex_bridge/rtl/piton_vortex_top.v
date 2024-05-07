@@ -1,12 +1,12 @@
 `include "piton_vortex_define.vh"
 `include "./vortex/hw/rtl"
-
+//TODO: find the parameters
+// pretty sure xlen depends on the program it runs since i remember fetching that as an argument when i ran the execution command via blackbox.sh
 module piton_vortex_top #(
-    parameter VORTEX_AXI_CTRL_ADDR_WIDTH = 8,
-	parameter VORTEX_AXI_CTRL_DATA_WIDTH = 32,
-	parameter VORTEX_AXI_MEM_ID_WIDTH 	 = 32,
-	parameter VORTEX_AXI_MEM_ADDR_WIDTH  = 64,
-	parameter VORTEX_AXI_MEM_DATA_WIDTH  = 512
+	parameter VORTEX_AXI_DATA_WIDTH = 512,
+	parameter VORTEX_AXI_TID_WIDTH 	 = , // L3_MEM_TAG_WIDTH
+	parameter VORTEX_AXI_ADDR_WIDTH  = , // XLEN (32 or 64) VX_config.vh
+	parameter VORTEX_AXI_NUM_BANKS  = 1
 )(
     // Clock and reset
     input  wire                             sys_clk,
@@ -25,73 +25,104 @@ module piton_vortex_top #(
     // 5/5/24 maybe nothing comes here since entire vortex is under the top
 );
 
-wire sys_rst_n = ~sys_rst;
+// wire sys_rst_n = ~sys_rst;
 
-// AXI-4 Lite Master Interface
-wire                                    m_axi_ctrl_awvalid;
-wire                                    m_axi_ctrl_awready;
-wire [VORTEX_AXI_CTRL_ADDR_WIDTH-1:0]   m_axi_ctrl_awaddr;
-wire                                    m_axi_ctrl_wvalid;
-wire                                    m_axi_ctrl_wready;
-wire [VORTEX_AXI_CTRL_DATA_WIDTH-1:0]   m_axi_ctrl_wdata;
-wire [VORTEX_AXI_CTRL_DATA_WIDTH/8-1:0] m_axi_ctrl_wstrb;
-wire                                    m_axi_ctrl_arvalid;
-wire                                    m_axi_ctrl_arready;
-wire [VORTEX_AXI_CTRL_ADDR_WIDTH-1:0]   m_axi_ctrl_araddr;
-wire                                    m_axi_ctrl_rvalid;
-wire                                    m_axi_ctrl_rready;
-wire [VORTEX_AXI_CTRL_DATA_WIDTH-1:0]   m_axi_ctrl_rdata;
-wire [1:0]                              m_axi_ctrl_rresp;
-wire                                    m_axi_ctrl_bvalid;
-wire                                    m_axi_ctrl_bready;
-wire [1:0]                              m_axi_ctrl_bresp;
+// // AXI-4 Lite Master Interface
+// wire                                    m_axi_ctrl_awvalid;
+// wire                                    m_axi_ctrl_awready;
+// wire [VORTEX_AXI_CTRL_ADDR_WIDTH-1:0]   m_axi_ctrl_awaddr;
+// wire                                    m_axi_ctrl_wvalid;
+// wire                                    m_axi_ctrl_wready;
+// wire [VORTEX_AXI_CTRL_DATA_WIDTH-1:0]   m_axi_ctrl_wdata;
+// wire [VORTEX_AXI_CTRL_DATA_WIDTH/8-1:0] m_axi_ctrl_wstrb;
+// wire                                    m_axi_ctrl_arvalid;
+// wire                                    m_axi_ctrl_arready;
+// wire [VORTEX_AXI_CTRL_ADDR_WIDTH-1:0]   m_axi_ctrl_araddr;
+// wire                                    m_axi_ctrl_rvalid;
+// wire                                    m_axi_ctrl_rready;
+// wire [VORTEX_AXI_CTRL_DATA_WIDTH-1:0]   m_axi_ctrl_rdata;
+// wire [1:0]                              m_axi_ctrl_rresp;
+// wire                                    m_axi_ctrl_bvalid;
+// wire                                    m_axi_ctrl_bready;
+// wire [1:0]                              m_axi_ctrl_bresp;
 // wires
 // TODO: Instantiate core ctrl
 // core_ctrl
 piton_vortex_core_ctrl ctrl #(
-    .C_S_AXI_CTRL_ADDR_WIDTH (VORTEX_AXI_CTRL_ADDR_WIDTH),
-	.C_S_AXI_CTRL_DATA_WIDTH (VORTEX_AXI_CTRL_DATA_WIDTH)
+    .VORTEX_AXI_DATA_WIDTH(`VORTEX_AXI_DATA_WIDTH), // `L3_LINE_SIZE * 8
+    .VORTEX_AXI_ADDR_WIDTH(`VORTEX_AXI_ADDR_WIDTH), // XLEN
+    .VORTEX_AXI_TID_WIDTH(`VORTEX_AXI_TID_WIDTH), // L3_MEM_TAG_WIDTH
+    .VORTEX_AXI_NUM_BANKS(`VORTEX_AXI_NUM_BANKS)
 )(
 
 );
 
-// master port logic / buffer?
-
 // fake memory for AFU to the "slave" ports
 
-vortex_afu vortex_afu #(
-    .C_S_AXI_CTRL_ADDR_WIDTH (VORTEX_AXI_CTRL_ADDR_WIDTH),
-	.C_S_AXI_CTRL_DATA_WIDTH (VORTEX_AXI_CTRL_DATA_WIDTH),
-	.C_M_AXI_MEM_ID_WIDTH 	 (VORTEX_AXI_MEM_ID_WIDTH),
-	.C_M_AXI_MEM_ADDR_WIDTH  (VORTEX_AXI_MEM_ADDR_WIDTH),
-	.C_M_AXI_MEM_DATA_WIDTH  (VORTEX_AXI_MEM_DATA_WIDTH)  
-) (
-    // System signals
-	.ap_clk (sys_clk),
-	.ap_rst_n (sys_rst_n),
-	
-	// AXI4 master interface
-	`REPEAT (`M_AXI_MEM_NUM_BANKS, GEN_AXI_MEM, REPEAT_COMMA),
+vortex_axi vortex_axi #(
+    .AXI_DATA_WIDTH(`VORTEX_AXI_DATA_WIDTH), // `L3_LINE_SIZE * 8
+    .AXI_ADDR_WIDTH(`VORTEX_AXI_ADDR_WIDTH), // XLEN
+    .AXI_TID_WIDTH(`VORTEX_AXI_TID_WIDTH), // L3_MEM_TAG_WIDTH
+    .AXI_NUM_BANKS(`VORTEX_AXI_NUM_BANKS)
+)(
+    // Clock
+    .clk(sys_clk),
+    .reset(sys_rst),
 
-    // AXI4-Lite slave interface
-    .s_axi_ctrl_awvalid (m_axi_ctrl_awvalid),
-    .s_axi_ctrl_awready (m_axi_ctrl_awready),
-    .s_axi_ctrl_awaddr (m_axi_ctrl_awaddr),
-    .s_axi_ctrl_wvalid (m_axi_ctrl_wvalid),
-    .s_axi_ctrl_wready (m_axi_ctrl_wready),
-    .s_axi_ctrl_wdata (m_axi_ctrl_wdata),
-    .s_axi_ctrl_wstrb (m_axi_ctrl_wstrb),
-    .s_axi_ctrl_arvalid (m_axi_ctrl_arvalid),
-    .s_axi_ctrl_arready (m_axi_ctrl_arready),
-    .s_axi_ctrl_araddr (m_axi_ctrl_araddr),
-    .s_axi_ctrl_rvalid (m_axi_ctrl_rvalid),
-    .s_axi_ctrl_rready (m_axi_ctrl_rready),
-    .s_axi_ctrl_rdata (m_axi_ctrl_rdata),
-    .s_axi_ctrl_rresp (m_axi_ctrl_rresp),
-    .s_axi_ctrl_bvalid (m_axi_ctrl_bvalid),
-    .s_axi_ctrl_bready (m_axi_ctrl_bready),
-    .s_axi_ctrl_bresp (m_axi_ctrl_bresp),
+    // AXI write request address channel    
+    .m_axi_awvalid(),
+    .m_axi_awready(),
+    .m_axi_awaddr(),
+    .m_axi_awid(),
+    .m_axi_awlen(),
+    .m_axi_awsize(),
+    .m_axi_awburst(),
+    .m_axi_awlock(),
+    .m_axi_awcache(),
+    .m_axi_awprot (),
+    .m_axi_awqos(),
+    .m_axi_awregion(),
+
+    // AXI write request data channel     
+    .m_axi_wvalid(), 
+    .m_axi_wready(),
+    .m_axi_wdata(),
+    .m_axi_wstrb(),    
+    .m_axi_wlast(),  
+
+    // AXI write response channel
+    .m_axi_bvalid(),
+    .m_axi_bready(),
+    .m_axi_bid(),
+    .m_axi_bres(),
     
-    .interrupt () // Not sure what to do with this
+    // AXI read request channel
+    .m_axi_arvalid(),
+    .m_axi_arready(),
+    .m_axi_arad(),
+    .m_axi_ari(),
+    .m_axi_arlen(),
+    .m_axi_arsize(),
+    .m_axi_arburst(),            
+    .m_axi_arlock(),    
+    .m_axi_arcache(),
+    .m_axi_arpro(),        
+    .m_axi_arqos(), 
+    .m_axi_arregion(),
+    
+    // AXI read response channel
+    .m_axi_rvalid(),
+    .m_axi_rready(),
+    .m_axi_rdata ()
+    .m_axi_rlast(),
+    .m_axi_rid(),
+    .m_axi_rresp(),
+    
+    // DCR write request
+    .dcr_wr_valid(),
+    .dcr_wr_addr(),
+    .dcr_wr_data(),
+    // Status
+    .busy()
 );
 endmodule

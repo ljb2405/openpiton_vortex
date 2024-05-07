@@ -26,24 +26,64 @@ module piton_vortex_core_ctrl #(
     // input  wire [`NOC_DATA_BITS]        buffer_core_data,
     // output reg  [`NOC_DATA_BITS]        core_buffer_data
 
-    // Master AXI-4 Lite Interface
-	output wire                                    m_axi_ctrl_awvalid,
-	input  wire                                    m_axi_ctrl_awready,
-	output wire [VORTEX_AXI_CTRL_ADDR_WIDTH-1:0]   m_axi_ctrl_awaddr,
-	output wire                                    m_axi_ctrl_wvalid,
-	input  wire                                    m_axi_ctrl_wready,
-	output wire [VORTEX_AXI_CTRL_DATA_WIDTH-1:0]   m_axi_ctrl_wdata,
-	output wire [VORTEX_AXI_CTRL_DATA_WIDTH/8-1:0] m_axi_ctrl_wstrb,
-	output wire                                    m_axi_ctrl_arvalid,
-	input  wire                                    m_axi_ctrl_arready,
-	output wire [VORTEX_AXI_CTRL_ADDR_WIDTH-1:0]   m_axi_ctrl_araddr,
-	input  wire                                    m_axi_ctrl_rvalid,
-	output wire                                    m_axi_ctrl_rready,
-	input wire  [VORTEX_AXI_CTRL_DATA_WIDTH-1:0]   m_axi_ctrl_rdata,
-	input wire  [1:0]                              m_axi_ctrl_rresp,
-	input wire                                     m_axi_ctrl_bvalid,
-	output wire                                    m_axi_ctrl_bready,
-	input wire  [1:0]                              m_axi_ctrl_bresp,
+    // AXI write request address channel
+    // TODO: Change input/output    
+    input wire                         s_axi_awvalid [AXI_NUM_BANKS],
+    output wire                          s_axi_awready [AXI_NUM_BANKS],
+    input wire [AXI_ADDR_WIDTH-1:0]    s_axi_awaddr [AXI_NUM_BANKS],
+    input wire [AXI_TID_WIDTH-1:0]     s_axi_awid [AXI_NUM_BANKS],
+    input wire [7:0]                   s_axi_awlen [AXI_NUM_BANKS],
+    input wire [2:0]                   s_axi_awsize [AXI_NUM_BANKS],
+    input wire [1:0]                   s_axi_awburst [AXI_NUM_BANKS],
+    input wire [1:0]                   s_axi_awlock [AXI_NUM_BANKS],
+    input wire [3:0]                   s_axi_awcache [AXI_NUM_BANKS],
+    input wire [2:0]                   s_axi_awprot [AXI_NUM_BANKS],
+    input wire [3:0]                   s_axi_awqos [AXI_NUM_BANKS],
+    input wire [3:0]                   s_axi_awregion [AXI_NUM_BANKS],
+
+    // AXI write request data channel     
+    input wire                         s_axi_wvalid [AXI_NUM_BANKS], 
+    output wire                          s_axi_wready [AXI_NUM_BANKS],
+    input wire [AXI_DATA_WIDTH-1:0]    s_axi_wdata [AXI_NUM_BANKS],
+    input wire [AXI_DATA_WIDTH/8-1:0]  s_axi_wstrb [AXI_NUM_BANKS],    
+    input wire                         s_axi_wlast [AXI_NUM_BANKS],  
+
+    // AXI write response channel
+    output wire                          s_axi_bvalid [AXI_NUM_BANKS],
+    input wire                         s_axi_bready [AXI_NUM_BANKS],
+    output wire [AXI_TID_WIDTH-1:0]      s_axi_bid [AXI_NUM_BANKS],
+    output wire [1:0]                    s_axi_bresp [AXI_NUM_BANKS],
+    
+    // AXI read request channel
+    input wire                         s_axi_arvalid [AXI_NUM_BANKS],
+    output wire                          s_axi_arready [AXI_NUM_BANKS],
+    input wire [AXI_ADDR_WIDTH-1:0]    s_axi_araddr [AXI_NUM_BANKS],
+    input wire [AXI_TID_WIDTH-1:0]     s_axi_arid [AXI_NUM_BANKS],
+    input wire [7:0]                   s_axi_arlen [AXI_NUM_BANKS],
+    input wire [2:0]                   s_axi_arsize [AXI_NUM_BANKS],
+    input wire [1:0]                   s_axi_arburst [AXI_NUM_BANKS],            
+    input wire [1:0]                   s_axi_arlock [AXI_NUM_BANKS],    
+    input wire [3:0]                   s_axi_arcache [AXI_NUM_BANKS],
+    input wire [2:0]                   s_axi_arprot [AXI_NUM_BANKS],        
+    input wire [3:0]                   s_axi_arqos [AXI_NUM_BANKS], 
+    input wire [3:0]                   s_axi_arregion [AXI_NUM_BANKS],
+    
+    // AXI read response channel
+    output wire                          s_axi_rvalid [AXI_NUM_BANKS],
+    input wire                         s_axi_rready [AXI_NUM_BANKS],
+    output wire [AXI_DATA_WIDTH-1:0]     s_axi_rdata [AXI_NUM_BANKS],
+    output wire                          s_axi_rlast [AXI_NUM_BANKS],
+    output wire [AXI_TID_WIDTH-1:0]      s_axi_rid [AXI_NUM_BANKS],
+    output wire [1:0]                    s_axi_rresp [AXI_NUM_BANKS],
+    // Device Configuration Registers
+    // 5/7/24 not sure what we have to do for configuration but 
+    // DCR write request
+    output  wire                         dcr_wr_valid,
+    output  wire [`VX_DCR_ADDR_WIDTH-1:0] dcr_wr_addr,
+    output  wire [`VX_DCR_DATA_WIDTH-1:0] dcr_wr_data,
+
+    // Status
+    input wire                         busy
 
     // // Cache Manager
     // output reg                          cache_lock_acquire,

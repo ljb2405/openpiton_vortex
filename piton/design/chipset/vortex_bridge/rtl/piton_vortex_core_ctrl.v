@@ -29,21 +29,21 @@ module piton_vortex_core_ctrl #(
     // Master AXI-4 Lite Interface
 	output wire                                    m_axi_ctrl_awvalid,
 	input  wire                                    m_axi_ctrl_awready,
-	output wire [VORTEX_AXI_CTRL_ADDR_WIDTH-1:0]   m_axi_ctrl_awaddr,
-	output wire                                    m_axi_ctrl_wvalid,
+	output reg [VORTEX_AXI_CTRL_ADDR_WIDTH-1:0]   m_axi_ctrl_awaddr,
+	output reg                                    m_axi_ctrl_wvalid,
 	input  wire                                    m_axi_ctrl_wready,
 	output wire [VORTEX_AXI_CTRL_DATA_WIDTH-1:0]   m_axi_ctrl_wdata,
-	output wire [VORTEX_AXI_CTRL_DATA_WIDTH/8-1:0] m_axi_ctrl_wstrb,
-	output wire                                    m_axi_ctrl_arvalid,
+	output reg [VORTEX_AXI_CTRL_DATA_WIDTH/8-1:0] m_axi_ctrl_wstrb,
+	output reg                                    m_axi_ctrl_arvalid,
 	input  wire                                    m_axi_ctrl_arready,
 	output wire [VORTEX_AXI_CTRL_ADDR_WIDTH-1:0]   m_axi_ctrl_araddr,
 	input  wire                                    m_axi_ctrl_rvalid,
-	output wire                                    m_axi_ctrl_rready,
+	output reg                                    m_axi_ctrl_rready,
 	input wire  [VORTEX_AXI_CTRL_DATA_WIDTH-1:0]   m_axi_ctrl_rdata,
 	input wire  [1:0]                              m_axi_ctrl_rresp,
 	input wire                                     m_axi_ctrl_bvalid,
-	output wire                                    m_axi_ctrl_bready,
-	input wire  [1:0]                              m_axi_ctrl_bresp,
+	output reg                                    m_axi_ctrl_bready,
+	input wire  [1:0]                              m_axi_ctrl_bresp
 
     // // Cache Manager
     // output reg                          cache_lock_acquire,
@@ -356,8 +356,15 @@ module piton_vortex_core_ctrl #(
         // core_cache_addr         =   addr[`PHY_BLOCK_BITS];
         counter_en              =   1'b0;
         counter_rst             =   1'b0;
-        // TODO: Default case declare for all axi wire outputs
-
+        m_axi_ctrl_awaddr       =   0;
+        m_axi_ctrl_awvalid      =   1'b0;
+        m_axi_ctrl_wdata        =   0;
+        m_axi_ctrl_wvalid       =   0;
+        m_axi_ctrl_wstrb        =   0;
+        m_axi_ctrl_bready       =   1'b0;
+        m_axi_ctrl_araddr       =   0;
+        m_axi_ctrl_arvalid      =   1'b0;
+        m_axi_ctrl_rready       =   1'b0;
         case    (state)
             NOC_IDLE: begin
                 bridge_splitter_rdy =   1'b1;

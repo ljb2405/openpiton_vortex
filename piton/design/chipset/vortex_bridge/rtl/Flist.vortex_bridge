@@ -1,3 +1,5 @@
 piton_vortex_top.v
 piton_vortex_core_ctrl.v
 piton_vortex_define.vh
+vortex_fake_mem_ctrl.v
+vortex_fake_mem.v

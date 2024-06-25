@@ -29,6 +29,9 @@
 `include "chipset_define.vh"
 `ifdef PITONSYS_AXI4_MEM
 `include "noc_axi4_bridge_define.vh"
+`ifdef PITONSYS_VORTEX
+`include "piton_vortex_define.vh"
+`endif
 `endif
 
 // Filename: chipset.v

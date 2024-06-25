@@ -27,6 +27,7 @@ module piton_vortex_top #(
 );
 
 wire sys_rst_n = ~sys_rst;
+wire interrupt;
 
 // AXI-4 Lite Master Interface Wires
 wire                                    m_axi_ctrl_awvalid;
@@ -214,7 +215,7 @@ vortex_afu vortex_afu #(
 	.ap_rst_n (sys_rst_n),
 	// TODO: Do proper instantiation
 	// AXI4 master interface
-	`REPEAT (1, GEN_AXI_MEM, REPEAT_COMMA),
+	`REPEAT (1, GEN_AXI_MEM, REPEAT_COMMA), // TODO: write this out manually most likely
 
     // AXI4-Lite slave interface
     .s_axi_ctrl_awvalid (m_axi_ctrl_awvalid),
@@ -235,6 +236,6 @@ vortex_afu vortex_afu #(
     .s_axi_ctrl_bready (m_axi_ctrl_bready),
     .s_axi_ctrl_bresp (m_axi_ctrl_bresp),
     
-    .interrupt (1'b0) // Not sure what to do with this
+    .interrupt (interrupt) // Not sure what to do with this
 );
 endmodule

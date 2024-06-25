@@ -1,0 +1,11 @@
+/*
+ * piton_vortex_bridge_test test case TEMPLATE (TODO: Replace) source bits file.
+ * Provides stimuli to the module.
+ *
+ * TODO: Set these format bits for your DUT
+ * Format of bits:
+ *      * 0 - 15: lfsr_seed
+ *      * 16: lfsr_ld
+ *      * 17: lfsr_step
+ */
+01_0000_0000_0000_0001         // Can put comments here to explain test case

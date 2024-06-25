@@ -1,0 +1,10 @@
+/*
+ * piton_vortex_bridge_test test case TEMPLATE (TODO: Replace) sink bits file.
+ * Provides the bits for the sink to check against.
+ *
+ * TODO: Set these format bits for your DUT
+ * Format of bits:
+ *      * 0 - 15: lfsr_state_f
+ *      * 16: lfsr_out_f
+ */
+0_0000_0000_0000_0000         // Can put comments here to explain test case

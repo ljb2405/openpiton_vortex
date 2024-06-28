@@ -117,7 +117,7 @@ piton_vortex_core_ctrl ctrl #(
     .buffer_full(piton_buffer_full);
 );
 
-// TODO: DCR buffer needed to fit into Vortex clk freq
+
 piton_dcr_buffer piton_buffer #(
     .VX_DCR_ADDR_WIDTH(8),
     .VX_DCR_DATA_WIDTH(32)
@@ -234,7 +234,7 @@ Vortex_axi vortex #(
     .dcr_wr_data(dcr_wr_data),
 
     // Status
-  dcr.busy(dcr_busy)
+    .busy(dcr_busy)
 );
 
 // fake memory for AFU to the "slave" ports

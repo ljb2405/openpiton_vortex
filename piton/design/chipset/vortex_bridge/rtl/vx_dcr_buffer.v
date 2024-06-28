@@ -1,6 +1,6 @@
 `include "openpiton_vortex/piton/design/chipset/vortex_bridge/rtl/piton_vortex_define.vh"
 
-module piton_dcr_buffer #(
+module vx_dcr_buffer #(
     parameter VX_DCR_ADDR_WIDTH = 8,
 	parameter VX_DCR_DATA_WIDTH = 32
 )(
@@ -10,24 +10,24 @@ module piton_dcr_buffer #(
 
     // Input from Piton Buffer
     input wire                                  dcr_buffer_wr_valid,
-    input wire [`VX_DCR_ADDR_WIDTH-1:0]         dcr_buffer_wr_addr,
-    input wire [`VX_DCR_DATA_WIDTH-1:0]         dcr_buffer_wr_data,
+    input wire [VX_DCR_ADDR_WIDTH-1:0]         dcr_buffer_wr_addr,
+    input wire [VX_DCR_DATA_WIDTH-1:0]         dcr_buffer_wr_data,
 
     // Output to Vortex 
     output wire                                 dcr_wr_valid,
-    output wire [`VX_DCR_ADDR_WIDTH-1:0]        dcr_wr_addr,
-    output wire [`VX_DCR_DATA_WIDTH-1:0]        dcr_wr_data,
+    output wire [VX_DCR_ADDR_WIDTH-1:0]        dcr_wr_addr,
+    output wire [VX_DCR_DATA_WIDTH-1:0]        dcr_wr_data,
     
     // Handshake protocol to send valid data to Vortex
     // Valid signal replaced with dcr_buffer_wr_valid
     input wire                                  dcr_busy,
     // Ready Signal to Piton buffer
-    output wire                                 vx_buffer_rdy;
+    output wire                                 vx_buffer_rdy
 );
 
 /* Variables */
-reg [`VX_DCR_ADDR_WIDTH-1:0] msg_vx_addr_buf [7:0];
-reg [`VX_DCR_DATA_WIDTH-1:0] msg_vx_data_buf [7:0];
+reg [VX_DCR_ADDR_WIDTH-1:0] msg_vx_addr_buf [7:0];
+reg [VX_DCR_DATA_WIDTH-1:0] msg_vx_data_buf [7:0];
 
 reg [2:0] input_pointer;
 reg [2:0] output_pointer;
@@ -41,7 +41,7 @@ reg piton_buffer_valid_req_sync_1;
 
 /* Sequential Logic */
 
-always (posedge rst or posedge clk) begin
+always @(posedge rst or posedge clk) begin
     if (rst) begin
         input_pointer <= 0;
         output_pointer <= 0;
@@ -69,8 +69,8 @@ always (posedge rst or posedge clk) begin
     end
     else begin
         if (buf_receive) begin
-            msg_vx_addr_buf[input_pointer] <= buffer_wr_addr;
-            msg_vx_data_buf[input_pointer] <= buffer_wr_data;
+            msg_vx_addr_buf[input_pointer] <= dcr_buffer_wr_addr;
+            msg_vx_data_buf[input_pointer] <= dcr_buffer_wr_data;
 
              input_pointer <= input_pointer + 1;
         end

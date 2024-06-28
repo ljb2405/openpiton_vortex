@@ -21,8 +21,8 @@ module piton_vortex_core_ctrl #(
 
     // Output to DCR Buffer
     output wire                             buffer_wr_valid,
-    output reg [`VX_DCR_ADDR_WIDTH-1:0]     buffer_wr_addr,
-    output reg [`VX_DCR_DATA_WIDTH-1:0]     buffer_wr_data,
+    output reg [VX_DCR_ADDR_WIDTH-1:0]     buffer_wr_addr,
+    output reg [VX_DCR_DATA_WIDTH-1:0]     buffer_wr_data,
 
     input wire                              buffer_full;
 );

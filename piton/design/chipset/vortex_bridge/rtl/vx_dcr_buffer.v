@@ -9,20 +9,20 @@ module vx_dcr_buffer #(
     input  wire                                 rst,
 
     // Input from Piton Buffer
-    input wire                                  dcr_buffer_wr_valid,
+    input wire                                 dcr_buffer_wr_valid,
     input wire [VX_DCR_ADDR_WIDTH-1:0]         dcr_buffer_wr_addr,
     input wire [VX_DCR_DATA_WIDTH-1:0]         dcr_buffer_wr_data,
 
     // Output to Vortex 
-    output wire                                 dcr_wr_valid,
+    output wire                                dcr_wr_valid,
     output wire [VX_DCR_ADDR_WIDTH-1:0]        dcr_wr_addr,
     output wire [VX_DCR_DATA_WIDTH-1:0]        dcr_wr_data,
     
     // Handshake protocol to send valid data to Vortex
     // Valid signal replaced with dcr_buffer_wr_valid
-    input wire                                  dcr_busy,
+    input wire                                 dcr_busy,
     // Ready Signal to Piton buffer
-    output wire                                 vx_buffer_rdy
+    output wire                                vx_buffer_rdy
 );
 
 /* Variables */
@@ -78,17 +78,17 @@ always @(posedge rst or posedge clk) begin
              input_pointer <= input_pointer + 1'b1;
         end
 
-        if (dcr_wr_valid) begin
-            counter <= counter + 1;
-            //output_pointer <= output_pointer + 1'b1;
-        end
+        // if (~dcr_busy) begin
+        //     counter <= counter + 1;
+        //     //output_pointer <= output_pointer + 1'b1;
+        // end
 
         // TODO: improve the logic on when to increase the output pointer
         // Seems fishy to just do it for one cycle as it crosses clock domain
         // Check clock freq of Piton to ensure if its going lower to higher or vice versa
-        if (dcr_wr_valid  && counter == 2'b10) begin
+        if (dcr_wr_valid) begin
              output_pointer <= output_pointer + 1'b1;
-             counter <= 0;
+             // counter <= 0;
         end
 
         // Valid Signal Synchronization
@@ -107,7 +107,7 @@ assign buf_receive = (piton_buffer_valid_req_sync_1 && vx_buffer_rdy);
 assign vx_buffer_rdy = ~buffer_full ? 1'b1 : 1'b0;
 
 // Vortex DCR bus signal
-assign dcr_wr_valid = (~dcr_busy && ~buffer_empty);
-assign dcr_wr_addr = msg_vx_addr_buf[output_pointer];
-assign dcr_wr_data = msg_vx_data_buf[output_pointer];
+assign dcr_wr_valid = (!dcr_busy && !buffer_empty);
+assign dcr_wr_addr = msg_vx_addr_buf[(output_pointer[2:0])];
+assign dcr_wr_data = msg_vx_data_buf[(output_pointer[2:0])];
 endmodule

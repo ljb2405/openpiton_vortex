@@ -15,7 +15,10 @@
 // Inputs one entry into the buffer
 `define INPUT_BUFFER(VAL)                                                   \
     begin                                                                   \
-        #10;                                                                \
+        #10; \
+        // while (!output_rdy) begin \
+        // #1; \
+        // end                                                                 \
         input_valid = 1;                                                    \
         addr_input = {5'b0, counter};                                       \
         data_input = data_mem[counter];                                     \
@@ -29,14 +32,10 @@
 `define OUTPUT_BUFFER(VAL)                                                  \
     begin                                                                   \
         #10;                                                                \
-        output_rdy = 1;                                                     \
+        input_busy = 0; \
         // #1; \
-        // #1; \
-        while (output_valid == 0) begin                     \
-           #1; \
-        end                                                                 \
-        #1;                                                                   \
-        output_rdy = 0;                                                     \
+        // #1; \                                                              \
+        // #1;                                                                   \
         //$display("OUTPUT POINTER: %h", debug_output_pointer); \
         if (data_mem[out_counter] !== data_output) begin                     \
             $display("\tBUFFER OUTPUT ASSERTION DATA FAILED: %h != %h",     \
@@ -47,21 +46,13 @@
             out_counter, addr_output);                                      \
         end                                                                 \
         #1;                                                                  \
+        input_busy = 1; \
         #1; \
         #1; \
         if (output_valid !== 0) begin                                        \
             $display("\tBUFFER OUTPUT VALID DIDN'T GO LOW");                \
         end                                                                 \
-        // if (data_mem[out_counter] != data_output) begin                     \
-        //     $display("\tBUFFER OUTPUT RE-ASSERTION DATA FAILED: %h != %h",  \
-        //     data_mem[out_counter], data_output);                            \
-        // end                                                                 \
-        // if (out_counter != addr_output) begin                               \
-        //     $display("\tBUFFER OUTPUT RE-ASSERTION ADDR FAILED: %h != %h",  \
-        //     out_counter, addr_output);                                      \
-        // end \
-        output_rdy = 0; \                                                                
-        out_counter = out_counter + 1;                                      \
+        out_counter = out_counter + 1;                                      \                                                                
     end #0
 
 // Asserts value
@@ -85,34 +76,36 @@ wire [2:0] debug_output_pointer;
 reg input_valid;
 reg [`VX_DCR_ADDR_WIDTH-1:0] addr_input;
 reg [`VX_DCR_DATA_WIDTH-1:0] data_input;
-reg output_rdy;
 
+reg input_busy;
+
+wire output_rdy;
 wire output_valid;
 wire [`VX_DCR_ADDR_WIDTH-1:0] addr_output;
 wire [`VX_DCR_DATA_WIDTH-1:0] data_output;
 wire buf_full;
 
-piton_dcr_buffer dut (
+vx_dcr_buffer dut (
     // Clock + Reset
     .clk(clk),
     .rst(rst),
 
     // Input from core control of DCR messages to Vortex
-    .buffer_wr_valid(input_valid),
-    .buffer_wr_addr(addr_input),
-    .buffer_wr_data(data_input),
+    .dcr_buffer_wr_valid(input_valid),
+    .dcr_buffer_wr_addr(addr_input),
+    .dcr_buffer_wr_data(data_input),
 
     // Output to Vortex Buffer
-    .buffer_dcr_wr_valid(output_valid),
-    .buffer_dcr_wr_addr(addr_output),
-    .buffer_dcr_wr_data(data_output),
+    .dcr_wr_valid(output_valid),
+    .dcr_wr_addr(addr_output),
+    .dcr_wr_data(data_output),
 
     // Handshake protocol to send valid data to Vortex
     // Valid signal replaced with buffer_dcr_wr_valid
-    .vx_buffer_rdy(output_rdy),
+    .dcr_busy(input_busy),
 
     // Control Signal to core_ctrl
-    .buffer_full(buf_full)
+    .vx_buffer_rdy(output_rdy)
 );
 
 always begin
@@ -120,13 +113,14 @@ always begin
 end
 
 initial begin
-    $dumpfile("buf_test.vcd");
+    $dumpfile("vx_buf_test.vcd");
     $dumpvars;
     clk = 0;
     counter = 0;
     out_counter = 0;
-    output_rdy = 0;
     rst = 0;
+    input_busy = 1;
+    input_valid = 0;
 
     `LOAD_MEMORY("buffer_data");
 
@@ -140,6 +134,7 @@ initial begin
     `ASSERT(output_valid, 0);
     `ASSERT(data_output, 0);
     `ASSERT(addr_output, 0);
+    `ASSERT(output_rdy, 1);
 
     // Test Case: Input and Output 1 value
     $display("\nTest Case: Input and Output 1 value");
@@ -197,7 +192,6 @@ initial begin
     `OUTPUT_BUFFER();
     `INPUT_BUFFER();
     `OUTPUT_BUFFER();
-
     $finish;
 end
 
